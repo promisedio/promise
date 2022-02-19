@@ -1,0 +1,27 @@
+[tool.poetry]
+name = "promisedio-promise"
+version = "1.0.1"
+description = "High-performance promise implementation for Python"
+authors = ["aachurin <aachurin@gmail.com>"]
+license = "MIT License"
+repository = "https://github.com/promisedio/promise"
+build = "build.py"
+packages = [
+    { include = "promisedio" }
+]
+exclude = [
+    "promisedio/promise/clinic",
+    "promisedio/promise/*.c",
+    "promisedio/promise/*.h",
+    "promisedio/promise/*.json",
+]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+
+[tool.poetry.dev-dependencies]
+promisedio-build-environment = "^1.0.7"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

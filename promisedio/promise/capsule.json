@@ -1,0 +1,10 @@
+{
+  "output": "capsule/promise.h",
+  "sources": [
+    "promise.c"
+  ],
+  "extend": [
+    "promise_capsule.h",
+    "promise_defs.h"
+  ]
+}
