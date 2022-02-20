@@ -1123,24 +1123,22 @@ promise_Lock_impl(PyTypeObject *type)
 
 /*[clinic input]
 promise.Lock.acquire
-
 [clinic start generated code]*/
 
 Py_LOCAL_INLINE(PyObject *)
 promise_Lock_acquire_impl(Lock *self)
-/*[clinic end generated code: output=20d044ffec9c1f84 input=1207c4f90d9bdb82]*/
+/*[clinic end generated code: output=20d044ffec9c1f84 input=3719b01c75a61bbd]*/
 {
     return (PyObject *) Lock_Acquire(self);
 }
 
 /*[clinic input]
 promise.Lock.release
-
 [clinic start generated code]*/
 
 Py_LOCAL_INLINE(PyObject *)
 promise_Lock_release_impl(Lock *self)
-/*[clinic end generated code: output=b1c748e07809746e input=6896117a2c29291e]*/
+/*[clinic end generated code: output=b1c748e07809746e input=34ca8d375175cf0b]*/
 {
     Lock_Release(self);
     Py_RETURN_NONE;

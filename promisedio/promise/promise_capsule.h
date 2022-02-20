@@ -1,5 +1,3 @@
-#include "promise.h"
-
 struct promise_s {
     PROMISE_PUBLIC_FIELDS
 };

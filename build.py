@@ -41,11 +41,7 @@ ext_modules = [
 
 
 def build(setup_kwargs):
-    """
-    This function is mandatory in order to build the extensions.
-    """
     setup_kwargs.update({
         "ext_modules": ext_modules,
-        "cmdclass": {"build_ext": build_ext},
-        "zip_safe": False
+        "cmdclass": {"build_ext": build_ext}
     })
