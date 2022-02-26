@@ -1,0 +1,17 @@
+{
+  "modules": {
+    "promisedio/promise": {
+      "output": "capsule/promise.h",
+      "include": [
+        "promisedio.h"
+      ],
+      "sources": [
+        "promise.c"
+      ],
+      "extend": [
+        "promise_defs.h",
+        "promise_capsule.h"
+      ]
+    }
+  }
+}

@@ -1246,7 +1246,7 @@ finally:
     return err;
 }
 
-#include "export.h"
+#include "promise_export.h"
 
 static int
 promisemodule_create_api(PyObject *module)
