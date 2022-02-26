@@ -9,11 +9,8 @@ build = "build.py"
 packages = [
     { include = "promisedio" }
 ]
-exclude = [
-    "promisedio/promise/clinic",
-    "promisedio/promise/*.c",
-    "promisedio/promise/*.h",
-    "promisedio/promise/*.json",
+include = [
+    { path = 'README.md' },
 ]
 
 [tool.poetry.dependencies]
