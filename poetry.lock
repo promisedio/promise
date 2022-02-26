@@ -27,7 +27,7 @@ python-versions = ">=3.5"
 
 [[package]]
 name = "promisedio-build-environment"
-version = "1.0.13"
+version = "1.0.14"
 description = "Promisedio build environment"
 category = "dev"
 optional = false
@@ -70,7 +70,7 @@ socks = ["PySocks (>=1.5.6,!=1.5.7,<2.0)"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "d6c037b0439544d27ec5f6a2f532caa3d9a46a713f1119799ff4f23ed26ffc39"
+content-hash = "107466fa766e7b45f8c22230561ca9ba7b115ac5b5117ce0eb6953c15c17e51a"
 
 [metadata.files]
 certifi = [
@@ -86,8 +86,8 @@ idna = [
     {file = "idna-3.3.tar.gz", hash = "sha256:9d643ff0a55b762d5cdb124b8eaa99c66322e2157b69160bc32796e824360e6d"},
 ]
 promisedio-build-environment = [
-    {file = "promisedio-build-environment-1.0.13.tar.gz", hash = "sha256:388ac3fcecfa0513acde927801e1f067c70dffdc11b00ef6ccee7a2f49c427c1"},
-    {file = "promisedio_build_environment-1.0.13-py3-none-any.whl", hash = "sha256:cc1bb988a92c9584954c6abe0054f29736e04a26349616ae76b4203b541eef98"},
+    {file = "promisedio-build-environment-1.0.14.tar.gz", hash = "sha256:885c8dbdb2f2ea645ca42a68a62ce0fee73a43573ff1f31b39401b5c1fba51f6"},
+    {file = "promisedio_build_environment-1.0.14-py3-none-any.whl", hash = "sha256:2fd0a20ab6246208aa6a02a26b45d0d7a667ba470c9f77c1939104e13c69e9ac"},
 ]
 requests = [
     {file = "requests-2.27.1-py2.py3-none-any.whl", hash = "sha256:f22fa1e554c9ddfd16e6e41ac79759e17be9e492b3587efa038054674760e72d"},
