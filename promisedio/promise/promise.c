@@ -584,8 +584,8 @@ promise_run_forever_impl(PyObject *module)
     _Py_IDENTIFIER(wait);
     _Py_IDENTIFIER(clear);
     while (1) {
-        Py_ssize_t process_result = Promise_ProcessChain(_ctx);
-        if (process_result <= 0)
+        if (Promise_ProcessChain(_ctx) <= 1)
+            // no more promises to resolve or error
             break;
         PyObject *ret = _PyObject_CallMethodIdNoArgs(event, &PyId_wait);
         if (!ret)
@@ -601,9 +601,6 @@ promise_run_forever_impl(PyObject *module)
     Promise_StopLoop(_ctx, (unlockloop) promise_unlockloop, _ctx);
     if (PyErr_Occurred())
         return NULL;
-
-    // In the case when promises remain in memory, they can be fulfilled later,
-    // which can lead to unsuspected consequences.
 
     Py_RETURN_NONE;
 }

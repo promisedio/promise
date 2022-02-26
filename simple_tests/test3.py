@@ -1,7 +1,7 @@
 import sys
-from promisedio.promise import deferred, exec_async
-from promisedio.loop import run_until_complete
-from promisedio import timer
+import time
+import threading
+from promisedio.promise import deferred, exec_async, run_forever
 
 
 some_value1 = "VALUE1"
@@ -15,11 +15,12 @@ print("0x%x" % id(some_value3))
 
 
 async def resolve_later(timeout, value, promises):
-    # f = await fs.open("demo1.txt", "wb")
-    # await f.close()
-    await timer.sleep(timeout)
-    for x in promises:
-        x.resolve(value)
+    def threading_sleep():
+        time.sleep(timeout)
+        for x in promises:
+            x.resolve(value)
+
+    threading.Thread(target=threading_sleep).start()
 
 
 async def test_then_only(promise):
@@ -51,7 +52,7 @@ def start():
     deferred1 = deferred()
     deferred2 = deferred()
 
-    exec_async(resolve_later(0.1, some_value1, [deferred1, deferred2]))
+    exec_async(resolve_later(1, some_value1, [deferred1, deferred2]))
 
     coro1 = test_then_only(deferred1.promise())
     coro2 = test_then_await(deferred2.promise())
@@ -61,7 +62,7 @@ def start():
 
     print("#ALLOCSTAT")
 
-    run_until_complete()
+    run_forever()
 
 
 start()
