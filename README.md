@@ -4,7 +4,7 @@
 > by Jet Brains and any of its subsidiaries, parent organization or affiliates.
 
 <p align="center">
-    <img src="https://raw.githubusercontent.com/aachurin/promisedio/main/logo.svg" alt="PromisedIO" />
+    <img src="https://raw.githubusercontent.com/promisedio/promise/main/logo.svg" alt="PromisedIO" />
 </p>
 <p align="center">
     <b>PromisedIO</b>

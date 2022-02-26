@@ -1,6 +1,6 @@
 // Copyright (c) 2021-2022 Andrey Churin <aachurin@gmail.com> Promisedio
 
-#include "promisedio.h"
+#include <promisedio.h>
 #include "promise_defs.h"
 
 typedef struct {
@@ -234,7 +234,7 @@ Promise_NewResolved(_ctx_var, PyObject *value, PyObject *func)
     if (promise) {
         if (value == NULL) {
             schedule_promise(promise, S(NoArgs), PROMISE_FULFILLED, 0);
-        } else if (value == Py_None) {
+        } else if (Py_IsNone(value)) {
             schedule_promise(promise, Py_None, PROMISE_FULFILLED, 0);
         } else {
             schedule_promise(promise, value, PROMISE_FULFILLED, 0);
@@ -730,12 +730,16 @@ promise_Promise_then_impl(Promise *self, PyObject *fulfilled,
                           PyObject *rejected)
 /*[clinic end generated code: output=9573450632b756bf input=d1643be0516cbaa7]*/
 {
-    fulfilled = (fulfilled == Py_None ? NULL : fulfilled);
+    if (Py_IsNone(fulfilled)) {
+        fulfilled = NULL;
+    }
     if (fulfilled && !PyCallable_Check(fulfilled)) {
         PyErr_SetString(PyExc_TypeError, "`fulfilled` argument must be a callable");
         return NULL;
     }
-    rejected = (rejected == Py_None ? NULL : rejected);
+    if (Py_IsNone(rejected)) {
+        rejected = NULL;
+    }
     if (rejected && !PyCallable_Check(rejected)) {
         PyErr_SetString(PyExc_TypeError, "`rejected` argument must be a callable");
         return NULL;

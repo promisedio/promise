@@ -15,7 +15,7 @@ define_macros_debug = define_macros_release + [
 undef_macros_debug = ["NDEBUG"]
 
 try:
-    build_environment_include = pkg_resources.resource_filename("promisedio_build_environment", "headers")
+    build_environment_include = pkg_resources.resource_filename("promisedio_build_environment", "include")
 except ModuleNotFoundError:
     raise Extension("Install promisedio_build_environment first.")
 

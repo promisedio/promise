@@ -1,7 +1,7 @@
 {
   "modules": {
     "promisedio/promise": {
-      "output": "capsule/promise.h",
+      "output": "capsule/promisedio/promise.h",
       "include": [
         "promisedio.h"
       ],
