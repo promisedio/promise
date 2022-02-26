@@ -10,7 +10,7 @@ packages = [
     { include = "promisedio" }
 ]
 include = [
-    { path = 'README.md' },
+    { path = 'README.md' }
 ]
 
 [tool.poetry.dependencies]
