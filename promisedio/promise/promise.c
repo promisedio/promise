@@ -1320,3 +1320,9 @@ PyInit__promise(void)
 {
     return PyModuleDef_Init(&promisemodule_def);
 }
+
+PyMODINIT_FUNC
+PyInit__promise_debug(void)
+{
+    return PyModuleDef_Init(&promisemodule_def);
+}

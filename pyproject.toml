@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "promisedio-promise"
-version = "1.0.3"
+version = "1.0.4"
 description = "High-performance promise implementation for Python"
 authors = ["aachurin <aachurin@gmail.com>"]
 license = "MIT License"
