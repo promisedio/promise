@@ -1,8 +1,9 @@
 import os
+import sys
 
 if os.environ.get("PROMISEDIO_DEBUG"):
-    from . _promise_debug import *
-else:
-    from . _promise import *
+    from . import _promise_debug
+    sys.modules[f"{__name__}._promise"] = _promise_debug
 
-del os
+from . _promise import *
+del os, sys

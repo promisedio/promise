@@ -2,7 +2,9 @@
 
 #define PROMISE_API promise_api_65f2d2f421145469d2a87b5eae34970d
 
-#define PROMISE_API_CAPSULE {\
+typedef void * PROMISE_API__CAPSULE[17];
+
+#define PROMISE_API__EXPORT {\
   [0] = Promise_StartLoop,\
   [1] = Promise_StopLoop,\
   [2] = Promise_New,\
