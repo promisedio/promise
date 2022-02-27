@@ -147,8 +147,7 @@ Py_FetchError()
 {
     PyObject *exc, *val, *tb;
     PyErr_Fetch(&exc, &val, &tb);
-    if (exc == NULL)
-        return NULL;
+    assert(exc != NULL);
     PyErr_NormalizeException(&exc, &val, &tb);
     if (tb != NULL) {
         PyException_SetTraceback(val, tb);

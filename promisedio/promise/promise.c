@@ -286,7 +286,6 @@ _Promise_RejectEx(Promise *self, PyObject *value, int invoke_callback)
     _CTX_set(self);
     if (!value) {
         value = Py_FetchError();
-        assert(value != NULL);
         schedule_promise(self, value, PROMISE_REJECTED, invoke_callback);
         Py_DECREF(value);
     } else {
@@ -372,7 +371,6 @@ resume_coroutine(_ctx_var, PyObject *coro, PyObject *value, int reject)
             value = Py_NewError(PyExc_RuntimeError, "`await` argument expected to be a promise.");
             if (!value) {
                 value = Py_FetchError();
-                assert(value != NULL);
             }
             reject = 1;
             continue;
@@ -417,7 +415,6 @@ handle_scheduled_promise(_ctx_var, Promise *promise)
                 }
                 exec_status = PROMISE_REJECTED;
                 value = Py_FetchError();
-                assert(value != NULL);
             } else {
                 exec_status = PROMISE_FULFILLED;
             }
