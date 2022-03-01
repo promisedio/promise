@@ -1,7 +1,70 @@
 // Copyright (c) 2021-2022 Andrey Churin <aachurin@gmail.com> Promisedio
 
+/*[capsule:name PROMISE_API]*/
+/*[capsule:output capsule/promisedio/]*/
+
+/*[capsule:copy]*/
 #include <promisedio.h>
-#include "promise_defs.h"
+
+typedef PyObject *(*promisecb)(PyObject *value, PyObject *promise);
+typedef void (*unlockloop)(void* ctx);
+
+enum {
+    PROMISE_INITIAL = 0x0000,
+    PROMISE_FULFILLED = 0x0001,
+    PROMISE_REJECTED = 0x0002,
+    PROMISE_RESOLVING = 0x0004,
+    PROMISE_RESOLVED = 0x0008,
+    PROMISE_INTERIM = 0x0010,
+    PROMISE_C_CALLBACK = 0x0020,
+    PROMISE_PY_CALLBACK = 0x0040,
+    PROMISE_VALUABLE = 0x0100
+};
+
+enum {
+    PROMISE_HAS_CALLBACK = (PROMISE_C_CALLBACK | PROMISE_PY_CALLBACK),
+    PROMISE_SCHEDULED = (PROMISE_FULFILLED | PROMISE_REJECTED),
+    PROMISE_FREEZED = (PROMISE_RESOLVING | PROMISE_RESOLVED)
+};
+
+#define PROMISE_PUBLIC_FIELDS   \
+    PyObject_HEAD               \
+    Chain_NODE(Promise);        \
+    PyObject *ctx;              \
+    void *timer;                \
+    char data[24];              \
+    int flags;
+
+typedef struct promise_s Promise;
+
+Py_LOCAL_INLINE(PyObject *)
+Py_NewError(PyObject *exception, const char *msg)
+{
+    PyObject *value = PyUnicode_FromString(msg);
+    if (!value)
+        return NULL;
+    PyObject *exc = PyObject_CallOneArg(exception, value);
+    Py_DECREF(value);
+    return exc;
+}
+
+Py_LOCAL_INLINE(PyObject *)
+Py_FetchError()
+{
+    PyObject *exc, *val, *tb;
+    PyErr_Fetch(&exc, &val, &tb);
+    if (exc == NULL)
+        return NULL;
+    PyErr_NormalizeException(&exc, &val, &tb);
+    if (tb != NULL) {
+        PyException_SetTraceback(val, tb);
+        Py_DECREF(tb);
+    }
+    Py_DECREF(exc);
+    return val;
+}
+
+/*[capsule:endcopy]*/
 
 typedef struct {
     Chain_ROOT(Promise)
@@ -41,6 +104,43 @@ struct promise_s {
     _ctx_var;
     Chain_ROOT(Promise)
 };
+
+/*[capsule:copy]*/
+#ifdef CAPSULE_PROMISE_API
+struct promise_s {
+    PROMISE_PUBLIC_FIELDS
+};
+#endif
+
+Py_LOCAL_INLINE(int)
+Promise_WasScheduled(Promise *promise)
+{
+    return (promise->flags & PROMISE_SCHEDULED) != 0;
+}
+
+Py_LOCAL_INLINE(void *)
+Promise_Data(Promise *promise)
+{
+    return &(promise->data);
+}
+
+#define Promise_DATA(promise, type) \
+    ((type *) Promise_Data(promise))
+
+Py_LOCAL_INLINE(PyObject *)
+Promise_GetCtx(Promise *promise)
+{
+    return promise->ctx;
+}
+
+Py_LOCAL_INLINE(PyObject *)
+Promise_SetCtx(Promise *promise, PyObject *ctx)
+{
+    PyObject *ret = promise->ctx;
+    promise->ctx = ctx;
+    return ret;
+}
+/*[capsule:endcopy]*/
 
 typedef struct {
     PyObject_HEAD
@@ -140,7 +240,7 @@ print_unhandled_exception_from_dealloc(PyObject *value)
 }
 
 /* Start loop and set scheduler hook and ctx*/
-CAPSULE_API(PROMISE_API, int)
+CAPSULE_API(int)
 Promise_StartLoop(_ctx_var, unlockloop unlock_func, void *ctx)
 {
     if (S(unlockloop_func)) {
@@ -153,7 +253,7 @@ Promise_StartLoop(_ctx_var, unlockloop unlock_func, void *ctx)
 }
 
 /* Set scheduler loop release hook */
-CAPSULE_API(PROMISE_API, int)
+CAPSULE_API(int)
 Promise_StopLoop(_ctx_var, unlockloop unlock_func, void *ctx)
 {
     if (S(unlockloop_func) || S(unlockloop_ctx)) {
@@ -167,7 +267,7 @@ Promise_StopLoop(_ctx_var, unlockloop unlock_func, void *ctx)
 }
 
 /* Create new Promise object */
-CAPSULE_API(PROMISE_API, Promise *)
+CAPSULE_API(Promise *)
 Promise_New(_ctx_var)
 {
     Promise *self = (Promise *) Freelist_GC_New(PromiseType);
@@ -191,7 +291,7 @@ Promise_New(_ctx_var)
 }
 
 /* Internal method for future use. */
-CAPSULE_API(PROMISE_API, void)
+CAPSULE_API(void)
 Promise_Callback(Promise *self, promisecb fulfilled, promisecb rejected)
 {
     assert(!(self->flags & (PROMISE_HAS_CALLBACK | PROMISE_FREEZED)));
@@ -200,7 +300,7 @@ Promise_Callback(Promise *self, promisecb fulfilled, promisecb rejected)
     self->rejected = (PyObject *) rejected;
 }
 
-CAPSULE_API(PROMISE_API, void)
+CAPSULE_API(void)
 Promise_PyCallback(Promise *self, PyObject *fulfilled, PyObject *rejected)
 {
     assert(!(self->flags & (PROMISE_HAS_CALLBACK | PROMISE_FREEZED)));
@@ -227,7 +327,7 @@ do {                                                                            
 } while (0)
 
 /* Create a new resolved promise, steals value reference */
-CAPSULE_API(PROMISE_API, Promise *)
+CAPSULE_API(Promise *)
 Promise_NewResolved(_ctx_var, PyObject *value, PyObject *func)
 {
     Promise *promise = Promise_New(_ctx);
@@ -249,7 +349,7 @@ Promise_NewResolved(_ctx_var, PyObject *value, PyObject *func)
 }
 
 /* Create a new promise derived from the given. */
-CAPSULE_API(PROMISE_API, Promise *)
+CAPSULE_API(Promise *)
 Promise_Then(Promise *self)
 {
     _CTX_set(self);
@@ -268,7 +368,7 @@ Promise_Then(Promise *self)
 }
 
 /* Resolve promise. */
-CAPSULE_API(PROMISE_API, void)
+CAPSULE_API(void)
 _Promise_ResolveEx(Promise *self, PyObject *value, int invoke_callback)
 {
     assert(!(self->flags & PROMISE_INTERIM));
@@ -277,8 +377,15 @@ _Promise_ResolveEx(Promise *self, PyObject *value, int invoke_callback)
     schedule_promise(self, value, PROMISE_FULFILLED, invoke_callback);
 }
 
+/*[capsule:copy]*/
+#define Promise_Resolve(self, value) Promise_ResolveEx(self, value, 0)
+#define Promise_ResolveEx(self, value, invoke_callback)     \
+    if (!((self)->flags & PROMISE_SCHEDULED))               \
+        _Promise_ResolveEx(self, value, invoke_callback)
+/*[capsule:endcopy]*/
+
 /* Reject promise */
-CAPSULE_API(PROMISE_API, void)
+CAPSULE_API(void)
 _Promise_RejectEx(Promise *self, PyObject *value, int invoke_callback)
 {
     assert(!(self->flags & PROMISE_INTERIM));
@@ -293,7 +400,14 @@ _Promise_RejectEx(Promise *self, PyObject *value, int invoke_callback)
     }
 }
 
-CAPSULE_API(PROMISE_API, void)
+/*[capsule:copy]*/
+#define Promise_Reject(self, value) Promise_RejectEx(self, value, 0)
+#define Promise_RejectEx(self, value, invoke_callback)      \
+    if (!(self->flags & PROMISE_SCHEDULED))                 \
+        _Promise_RejectEx(self, value, invoke_callback)
+/*[capsule:endcopy]*/
+
+CAPSULE_API (void)
 _Promise_RejectArgsEx(Promise *self, PyObject *exc, PyObject *args, int invoke_callback)
 {
     PyObject *value = PyObject_Call(exc, args, NULL);
@@ -301,13 +415,27 @@ _Promise_RejectArgsEx(Promise *self, PyObject *exc, PyObject *args, int invoke_c
     Py_XDECREF(value);
 }
 
-CAPSULE_API(PROMISE_API, void)
+/*[capsule:copy]*/
+#define Promise_RejectArgs(self, exc, args) Promise_RejectArgsEx(self, exc, args, 0)
+#define Promise_RejectArgsEx(self, exc, args, invoke_callback)  \
+    if (!(self->flags & PROMISE_SCHEDULED))                     \
+        _Promise_RejectArgsEx(self, exc, args, invoke_callback)
+/*[capsule:endcopy]*/
+
+CAPSULE_API(void)
 _Promise_RejectStringEx(Promise *self, PyObject *exc, const char *msg, int invoke_callback)
 {
     PyObject *value = Py_NewError(exc, msg);
     _Promise_RejectEx(self, value, invoke_callback);
     Py_XDECREF(value);
 }
+
+/*[capsule:copy]*/
+#define Promise_RejectString(self, exc, msg) Promise_RejectStringEx(self, exc, msg, 0)
+#define Promise_RejectStringEx(self, exc, msg, invoke_callback)     \
+    if (!(self->flags & PROMISE_SCHEDULED))                         \
+        _Promise_RejectStringEx(self, exc, msg, invoke_callback)
+/*[capsule:endcopy]*/
 
 Py_LOCAL_INLINE(int)
 promise_exec_async(_ctx_var, PyObject *coro)
@@ -491,7 +619,7 @@ handle_scheduled_promise(_ctx_var, Promise *promise)
     return 0;
 }
 
-CAPSULE_API(PROMISE_API, void)
+CAPSULE_API(void)
 Promise_ClearChain(_ctx_var)
 {
     Promise *it;
@@ -500,7 +628,7 @@ Promise_ClearChain(_ctx_var)
     }
 }
 
-CAPSULE_API(PROMISE_API, int)
+CAPSULE_API(int)
 Promise_ProcessChain(_ctx_var)
 {
     int ret = 0;
@@ -524,7 +652,7 @@ Promise_ProcessChain(_ctx_var)
     return ret;
 }
 
-CAPSULE_API(PROMISE_API, int)
+CAPSULE_API(int)
 Promise_GetStats(_ctx_var, Py_ssize_t *active_promises)
 {
     *active_promises = S(promise_count);
@@ -1057,13 +1185,13 @@ class promise.Lock "Lock *" "_CTX_get_type(type)->LockType"
 [clinic start generated code]*/
 /*[clinic end generated code: output=da39a3ee5e6b4b0d input=dc5e70ca7a8c9155]*/
 
-CAPSULE_API(PROMISE_API, Lock *)
+CAPSULE_API(Lock *)
 Lock_New(_ctx_var)
 {
     return (Lock *) promise_Lock_impl(S(LockType));
 }
 
-CAPSULE_API(PROMISE_API, Promise *)
+CAPSULE_API(Promise *)
 Lock_Acquire(Lock *self)
 {
     _CTX_set(self);
@@ -1081,7 +1209,7 @@ Lock_Acquire(Lock *self)
     return promise;
 }
 
-CAPSULE_API(PROMISE_API, void)
+CAPSULE_API(void)
 Lock_Release(Lock *self)
 {
     if (self->locked) {
@@ -1244,13 +1372,36 @@ finally:
     return err;
 }
 
-#include "promise_export.h"
+/*[capsule:export PROMISE_API_FUNCS]*/
+
+/*[capsule:__exportblock__]*/
+#define PROMISE_API promise_api_eaa656ec04c4f7d919b0cc30615e2c30
+#define PROMISE_API_FUNCS {\
+  [0] = Promise_StartLoop,\
+  [1] = Promise_StopLoop,\
+  [2] = Promise_New,\
+  [3] = Promise_Callback,\
+  [4] = Promise_PyCallback,\
+  [5] = Promise_NewResolved,\
+  [6] = Promise_Then,\
+  [7] = _Promise_ResolveEx,\
+  [8] = _Promise_RejectEx,\
+  [9] = _Promise_RejectArgsEx,\
+  [10] = _Promise_RejectStringEx,\
+  [11] = Promise_ClearChain,\
+  [12] = Promise_ProcessChain,\
+  [13] = Promise_GetStats,\
+  [14] = Lock_New,\
+  [15] = Lock_Acquire,\
+  [16] = Lock_Release,\
+}
+/*[capsule:__endexportblock__]*/
 
 static int
 promisemodule_create_api(PyObject *module)
 {
     LOG("(%p)", module);
-    Capsule_CREATE(module, PROMISE_API);
+    Capsule_CREATE(module, PROMISE_API, PROMISE_API_FUNCS);
     return 0;
 }
 

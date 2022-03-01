@@ -3,102 +3,12 @@
 #ifndef CAPSULE_PROMISE_API
 #define CAPSULE_PROMISE_API
 
-#include "promisedio.h"
+static int promise_api_eaa656ec04c4f7d919b0cc30615e2c30__LOADED = 0;
+static void *promise_api_eaa656ec04c4f7d919b0cc30615e2c30__API[17];
 
-static int promise_api_65f2d2f421145469d2a87b5eae34970d__API_LOADED = 0;
-static void *promise_api_65f2d2f421145469d2a87b5eae34970d__API[17];
+#define PROMISE_API promise_api_eaa656ec04c4f7d919b0cc30615e2c30
 
-#define PROMISE_API promise_api_65f2d2f421145469d2a87b5eae34970d
-
-#define PROMISE_STARTLOOP_ID 0
-#define Promise_StartLoop(...) \
-  ((int (*) (void*, unlockloop unlock_func, void *ctx))(promise_api_65f2d2f421145469d2a87b5eae34970d__API[PROMISE_STARTLOOP_ID]))( \
-    _ctx->promise_api_65f2d2f421145469d2a87b5eae34970d__CTX, __VA_ARGS__)
-
-#define PROMISE_STOPLOOP_ID 1
-#define Promise_StopLoop(...) \
-  ((int (*) (void*, unlockloop unlock_func, void *ctx))(promise_api_65f2d2f421145469d2a87b5eae34970d__API[PROMISE_STOPLOOP_ID]))( \
-    _ctx->promise_api_65f2d2f421145469d2a87b5eae34970d__CTX, __VA_ARGS__)
-
-#define PROMISE_NEW_ID 2
-#define Promise_New() \
-  ((Promise * (*) (void*))(promise_api_65f2d2f421145469d2a87b5eae34970d__API[PROMISE_NEW_ID]))( \
-    _ctx->promise_api_65f2d2f421145469d2a87b5eae34970d__CTX)
-
-#define PROMISE_CALLBACK_ID 3
-#define Promise_Callback(...) \
-  ((void (*) (Promise *self, promisecb fulfilled, promisecb rejected))(promise_api_65f2d2f421145469d2a87b5eae34970d__API[PROMISE_CALLBACK_ID]))( \
-    __VA_ARGS__)
-
-#define PROMISE_PYCALLBACK_ID 4
-#define Promise_PyCallback(...) \
-  ((void (*) (Promise *self, PyObject *fulfilled, PyObject *rejected))(promise_api_65f2d2f421145469d2a87b5eae34970d__API[PROMISE_PYCALLBACK_ID]))( \
-    __VA_ARGS__)
-
-#define PROMISE_NEWRESOLVED_ID 5
-#define Promise_NewResolved(...) \
-  ((Promise * (*) (void*, PyObject *value, PyObject *func))(promise_api_65f2d2f421145469d2a87b5eae34970d__API[PROMISE_NEWRESOLVED_ID]))( \
-    _ctx->promise_api_65f2d2f421145469d2a87b5eae34970d__CTX, __VA_ARGS__)
-
-#define PROMISE_THEN_ID 6
-#define Promise_Then(...) \
-  ((Promise * (*) (Promise *self))(promise_api_65f2d2f421145469d2a87b5eae34970d__API[PROMISE_THEN_ID]))( \
-    __VA_ARGS__)
-
-#define _PROMISE_RESOLVEEX_ID 7
-#define _Promise_ResolveEx(...) \
-  ((void (*) (Promise *self, PyObject *value, int invoke_callback))(promise_api_65f2d2f421145469d2a87b5eae34970d__API[_PROMISE_RESOLVEEX_ID]))( \
-    __VA_ARGS__)
-
-#define _PROMISE_REJECTEX_ID 8
-#define _Promise_RejectEx(...) \
-  ((void (*) (Promise *self, PyObject *value, int invoke_callback))(promise_api_65f2d2f421145469d2a87b5eae34970d__API[_PROMISE_REJECTEX_ID]))( \
-    __VA_ARGS__)
-
-#define _PROMISE_REJECTARGSEX_ID 9
-#define _Promise_RejectArgsEx(...) \
-  ((void (*) (Promise *self, PyObject *exc, PyObject *args, int invoke_callback))(promise_api_65f2d2f421145469d2a87b5eae34970d__API[_PROMISE_REJECTARGSEX_ID]))( \
-    __VA_ARGS__)
-
-#define _PROMISE_REJECTSTRINGEX_ID 10
-#define _Promise_RejectStringEx(...) \
-  ((void (*) (Promise *self, PyObject *exc, const char *msg, int invoke_callback))(promise_api_65f2d2f421145469d2a87b5eae34970d__API[_PROMISE_REJECTSTRINGEX_ID]))( \
-    __VA_ARGS__)
-
-#define PROMISE_CLEARCHAIN_ID 11
-#define Promise_ClearChain() \
-  ((void (*) (void*))(promise_api_65f2d2f421145469d2a87b5eae34970d__API[PROMISE_CLEARCHAIN_ID]))( \
-    _ctx->promise_api_65f2d2f421145469d2a87b5eae34970d__CTX)
-
-#define PROMISE_PROCESSCHAIN_ID 12
-#define Promise_ProcessChain() \
-  ((int (*) (void*))(promise_api_65f2d2f421145469d2a87b5eae34970d__API[PROMISE_PROCESSCHAIN_ID]))( \
-    _ctx->promise_api_65f2d2f421145469d2a87b5eae34970d__CTX)
-
-#define PROMISE_GETSTATS_ID 13
-#define Promise_GetStats(...) \
-  ((int (*) (void*, Py_ssize_t *active_promises))(promise_api_65f2d2f421145469d2a87b5eae34970d__API[PROMISE_GETSTATS_ID]))( \
-    _ctx->promise_api_65f2d2f421145469d2a87b5eae34970d__CTX, __VA_ARGS__)
-
-#define LOCK_NEW_ID 14
-#define Lock_New() \
-  ((Lock * (*) (void*))(promise_api_65f2d2f421145469d2a87b5eae34970d__API[LOCK_NEW_ID]))( \
-    _ctx->promise_api_65f2d2f421145469d2a87b5eae34970d__CTX)
-
-#define LOCK_ACQUIRE_ID 15
-#define Lock_Acquire(...) \
-  ((Promise * (*) (Lock *self))(promise_api_65f2d2f421145469d2a87b5eae34970d__API[LOCK_ACQUIRE_ID]))( \
-    __VA_ARGS__)
-
-#define LOCK_RELEASE_ID 16
-#define Lock_Release(...) \
-  ((void (*) (Lock *self))(promise_api_65f2d2f421145469d2a87b5eae34970d__API[LOCK_RELEASE_ID]))( \
-    __VA_ARGS__)
-
-// Copyright (c) 2021-2022 Andrey Churin <aachurin@gmail.com> Promisedio
-
-#ifndef PROMISEDIO_PROMISE_H
-#define PROMISEDIO_PROMISE_H
+#include <promisedio.h>
 
 typedef PyObject *(*promisecb)(PyObject *value, PyObject *promise);
 typedef void (*unlockloop)(void* ctx);
@@ -147,7 +57,8 @@ Py_FetchError()
 {
     PyObject *exc, *val, *tb;
     PyErr_Fetch(&exc, &val, &tb);
-    assert(exc != NULL);
+    if (exc == NULL)
+        return NULL;
     PyErr_NormalizeException(&exc, &val, &tb);
     if (tb != NULL) {
         PyException_SetTraceback(val, tb);
@@ -157,16 +68,16 @@ Py_FetchError()
     return val;
 }
 
-#endif
-
+#ifdef CAPSULE_PROMISE_API
 struct promise_s {
     PROMISE_PUBLIC_FIELDS
 };
+#endif
 
 Py_LOCAL_INLINE(int)
 Promise_WasScheduled(Promise *promise)
 {
-    return !!(promise->flags & PROMISE_SCHEDULED);
+    return (promise->flags & PROMISE_SCHEDULED) != 0;
 }
 
 Py_LOCAL_INLINE(void *)
@@ -192,28 +103,109 @@ Promise_SetCtx(Promise *promise, PyObject *ctx)
     return ret;
 }
 
+#define PROMISE_STARTLOOP_ID 0
+#define Promise_StartLoop(...) \
+  ((int (*) (void*, unlockloop unlock_func, void *ctx))(promise_api_eaa656ec04c4f7d919b0cc30615e2c30__API[PROMISE_STARTLOOP_ID]))( \
+    _ctx->promise_api_eaa656ec04c4f7d919b0cc30615e2c30__CTX, __VA_ARGS__)
+
+#define PROMISE_STOPLOOP_ID 1
+#define Promise_StopLoop(...) \
+  ((int (*) (void*, unlockloop unlock_func, void *ctx))(promise_api_eaa656ec04c4f7d919b0cc30615e2c30__API[PROMISE_STOPLOOP_ID]))( \
+    _ctx->promise_api_eaa656ec04c4f7d919b0cc30615e2c30__CTX, __VA_ARGS__)
+
+#define PROMISE_NEW_ID 2
+#define Promise_New() \
+  ((Promise * (*) (void*))(promise_api_eaa656ec04c4f7d919b0cc30615e2c30__API[PROMISE_NEW_ID]))( \
+    _ctx->promise_api_eaa656ec04c4f7d919b0cc30615e2c30__CTX)
+
+#define PROMISE_CALLBACK_ID 3
+#define Promise_Callback(...) \
+  ((void (*) (Promise *self, promisecb fulfilled, promisecb rejected))(promise_api_eaa656ec04c4f7d919b0cc30615e2c30__API[PROMISE_CALLBACK_ID]))( \
+    __VA_ARGS__)
+
+#define PROMISE_PYCALLBACK_ID 4
+#define Promise_PyCallback(...) \
+  ((void (*) (Promise *self, PyObject *fulfilled, PyObject *rejected))(promise_api_eaa656ec04c4f7d919b0cc30615e2c30__API[PROMISE_PYCALLBACK_ID]))( \
+    __VA_ARGS__)
+
+#define PROMISE_NEWRESOLVED_ID 5
+#define Promise_NewResolved(...) \
+  ((Promise * (*) (void*, PyObject *value, PyObject *func))(promise_api_eaa656ec04c4f7d919b0cc30615e2c30__API[PROMISE_NEWRESOLVED_ID]))( \
+    _ctx->promise_api_eaa656ec04c4f7d919b0cc30615e2c30__CTX, __VA_ARGS__)
+
+#define PROMISE_THEN_ID 6
+#define Promise_Then(...) \
+  ((Promise * (*) (Promise *self))(promise_api_eaa656ec04c4f7d919b0cc30615e2c30__API[PROMISE_THEN_ID]))( \
+    __VA_ARGS__)
+
+#define _PROMISE_RESOLVEEX_ID 7
+#define _Promise_ResolveEx(...) \
+  ((void (*) (Promise *self, PyObject *value, int invoke_callback))(promise_api_eaa656ec04c4f7d919b0cc30615e2c30__API[_PROMISE_RESOLVEEX_ID]))( \
+    __VA_ARGS__)
+
+#define Promise_Resolve(self, value) Promise_ResolveEx(self, value, 0)
 #define Promise_ResolveEx(self, value, invoke_callback)     \
     if (!((self)->flags & PROMISE_SCHEDULED))               \
         _Promise_ResolveEx(self, value, invoke_callback)
 
-#define Promise_Resolve(self, value) Promise_ResolveEx(self, value, 0)
+#define _PROMISE_REJECTEX_ID 8
+#define _Promise_RejectEx(...) \
+  ((void (*) (Promise *self, PyObject *value, int invoke_callback))(promise_api_eaa656ec04c4f7d919b0cc30615e2c30__API[_PROMISE_REJECTEX_ID]))( \
+    __VA_ARGS__)
 
+#define Promise_Reject(self, value) Promise_RejectEx(self, value, 0)
 #define Promise_RejectEx(self, value, invoke_callback)      \
     if (!(self->flags & PROMISE_SCHEDULED))                 \
         _Promise_RejectEx(self, value, invoke_callback)
 
-#define Promise_Reject(self, value) Promise_RejectEx(self, value, 0)
+#define _PROMISE_REJECTARGSEX_ID 9
+#define _Promise_RejectArgsEx(...) \
+  ((void (*) (Promise *self, PyObject *exc, PyObject *args, int invoke_callback))(promise_api_eaa656ec04c4f7d919b0cc30615e2c30__API[_PROMISE_REJECTARGSEX_ID]))( \
+    __VA_ARGS__)
 
+#define Promise_RejectArgs(self, exc, args) Promise_RejectArgsEx(self, exc, args, 0)
 #define Promise_RejectArgsEx(self, exc, args, invoke_callback)  \
     if (!(self->flags & PROMISE_SCHEDULED))                     \
         _Promise_RejectArgsEx(self, exc, args, invoke_callback)
 
-#define Promise_RejectArgs(self, exc, args) Promise_RejectArgsEx(self, exc, args, 0)
-
-#define Promise_RejectStringEx(self, exc, msg, invoke_callback)     \
-    if (!(self->flags & PROMISE_SCHEDULED))                         \
-        _Promise_RejectStringEx(self, exc, msg, invoke_callback)    \
+#define _PROMISE_REJECTSTRINGEX_ID 10
+#define _Promise_RejectStringEx(...) \
+  ((void (*) (Promise *self, PyObject *exc, const char *msg, int invoke_callback))(promise_api_eaa656ec04c4f7d919b0cc30615e2c30__API[_PROMISE_REJECTSTRINGEX_ID]))( \
+    __VA_ARGS__)
 
 #define Promise_RejectString(self, exc, msg) Promise_RejectStringEx(self, exc, msg, 0)
+#define Promise_RejectStringEx(self, exc, msg, invoke_callback)     \
+    if (!(self->flags & PROMISE_SCHEDULED))                         \
+        _Promise_RejectStringEx(self, exc, msg, invoke_callback)
+
+#define PROMISE_CLEARCHAIN_ID 11
+#define Promise_ClearChain() \
+  ((void (*) (void*))(promise_api_eaa656ec04c4f7d919b0cc30615e2c30__API[PROMISE_CLEARCHAIN_ID]))( \
+    _ctx->promise_api_eaa656ec04c4f7d919b0cc30615e2c30__CTX)
+
+#define PROMISE_PROCESSCHAIN_ID 12
+#define Promise_ProcessChain() \
+  ((int (*) (void*))(promise_api_eaa656ec04c4f7d919b0cc30615e2c30__API[PROMISE_PROCESSCHAIN_ID]))( \
+    _ctx->promise_api_eaa656ec04c4f7d919b0cc30615e2c30__CTX)
+
+#define PROMISE_GETSTATS_ID 13
+#define Promise_GetStats(...) \
+  ((int (*) (void*, Py_ssize_t *active_promises))(promise_api_eaa656ec04c4f7d919b0cc30615e2c30__API[PROMISE_GETSTATS_ID]))( \
+    _ctx->promise_api_eaa656ec04c4f7d919b0cc30615e2c30__CTX, __VA_ARGS__)
+
+#define LOCK_NEW_ID 14
+#define Lock_New() \
+  ((Lock * (*) (void*))(promise_api_eaa656ec04c4f7d919b0cc30615e2c30__API[LOCK_NEW_ID]))( \
+    _ctx->promise_api_eaa656ec04c4f7d919b0cc30615e2c30__CTX)
+
+#define LOCK_ACQUIRE_ID 15
+#define Lock_Acquire(...) \
+  ((Promise * (*) (Lock *self))(promise_api_eaa656ec04c4f7d919b0cc30615e2c30__API[LOCK_ACQUIRE_ID]))( \
+    __VA_ARGS__)
+
+#define LOCK_RELEASE_ID 16
+#define Lock_Release(...) \
+  ((void (*) (Lock *self))(promise_api_eaa656ec04c4f7d919b0cc30615e2c30__API[LOCK_RELEASE_ID]))( \
+    __VA_ARGS__)
 
 #endif
