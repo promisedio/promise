@@ -1,7 +1,8 @@
 [tool.poetry]
 name = "promisedio-promise"
-version = "1.0.19"
+version = "1.0.22"
 description = "High-performance promise implementation for Python"
+readme = "README.md"
 authors = ["aachurin <aachurin@gmail.com>"]
 license = "MIT License"
 repository = "https://github.com/promisedio/promise"
@@ -17,9 +18,6 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = "^3.10"
-
-[tool.poetry.dev-dependencies]
-promisedio-build-environment = { path = "../build-environment/", develop = true }
 
 [build-system]
 requires = ["poetry-core>=1.0.0", "setuptools", "promisedio-build-environment>=1.0.26,<1.1.0"]
