@@ -6,10 +6,7 @@ PyDoc_STRVAR(promise_clearfreelists__doc__,
 "clearfreelists($module, /)\n"
 "--\n"
 "\n"
-"Clear freelists\n"
-"\n"
 "Clear freelists.\n"
-"\n"
 "");
 
 #define PROMISE_CLEARFREELISTS_METHODDEF    \
@@ -29,10 +26,7 @@ PyDoc_STRVAR(promise_setfreelistlimits__doc__,
 "                  deferred_limit=-1)\n"
 "--\n"
 "\n"
-"Set freelist limits\n"
-"\n"
 "Set new freelist limits\n"
-"\n"
 "");
 
 #define PROMISE_SETFREELISTLIMITS_METHODDEF    \
@@ -120,7 +114,6 @@ PyDoc_STRVAR(promise_execasync__doc__,
 "--\n"
 "\n"
 "Start coroutine.\n"
-"\n"
 "");
 
 #define PROMISE_EXECASYNC_METHODDEF    \
@@ -158,7 +151,6 @@ PyDoc_STRVAR(promise_process_promise_chain__doc__,
 "--\n"
 "\n"
 "Process all scheduled (resolved or rejected) promises.\n"
-"\n"
 "");
 
 #define PROMISE_PROCESS_PROMISE_CHAIN_METHODDEF    \
@@ -178,7 +170,6 @@ PyDoc_STRVAR(promise_run_forever__doc__,
 "--\n"
 "\n"
 "Start simple event loop.\n"
-"\n"
 "");
 
 #define PROMISE_RUN_FOREVER_METHODDEF    \
@@ -197,9 +188,8 @@ PyDoc_STRVAR(promise_Promise_then__doc__,
 "then($self, /, fulfilled=None, rejected=None)\n"
 "--\n"
 "\n"
-"Create new _Promise_.\n"
-"It takes up to two arguments: callback functions for the success and failure cases of the _Promise_.\n"
-"\n"
+"Create new `Promise`.\n"
+"It takes up to two arguments: callback functions for the success and failure cases of the promise.\n"
 "");
 
 #define PROMISE_PROMISE_THEN_METHODDEF    \
@@ -246,7 +236,6 @@ PyDoc_STRVAR(promise_Promise_catch__doc__,
 "--\n"
 "\n"
 "The same as `.then(None, rejected)`\n"
-"\n"
 "");
 
 #define PROMISE_PROMISE_CATCH_METHODDEF    \
@@ -279,8 +268,7 @@ PyDoc_STRVAR(promise_deferred__doc__,
 "deferred($module, /)\n"
 "--\n"
 "\n"
-"Create new _Deferred_ object.\n"
-"\n"
+"Create new `Deferred` object.\n"
 "");
 
 #define PROMISE_DEFERRED_METHODDEF    \
@@ -299,8 +287,7 @@ PyDoc_STRVAR(promise_Deferred_resolve__doc__,
 "resolve($self, /, value)\n"
 "--\n"
 "\n"
-"Resolve related _Promise_ object with the given _value_.\n"
-"\n"
+"Resolve related `Promise` object with the given `value`.\n"
 "");
 
 #define PROMISE_DEFERRED_RESOLVE_METHODDEF    \
@@ -333,8 +320,7 @@ PyDoc_STRVAR(promise_Deferred_reject__doc__,
 "reject($self, /, value)\n"
 "--\n"
 "\n"
-"Reject related _Promise_ object with the given exception _exc_.\n"
-"\n"
+"Reject related `Promise` object with the given exception `exc`.\n"
 "");
 
 #define PROMISE_DEFERRED_REJECT_METHODDEF    \
@@ -367,8 +353,7 @@ PyDoc_STRVAR(promise_Deferred_promise__doc__,
 "promise($self, /)\n"
 "--\n"
 "\n"
-"Get related _Promise_ object.\n"
-"\n"
+"Get related `Promise` object.\n"
 "");
 
 #define PROMISE_DEFERRED_PROMISE_METHODDEF    \
@@ -409,8 +394,7 @@ PyDoc_STRVAR(promise_Lock_acquire__doc__,
 "acquire($self, /)\n"
 "--\n"
 "\n"
-"Acquire a lock.\n"
-"\n"
+"Acquire the lock.\n"
 "");
 
 #define PROMISE_LOCK_ACQUIRE_METHODDEF    \
@@ -429,7 +413,7 @@ PyDoc_STRVAR(promise_Lock_release__doc__,
 "release($self, /)\n"
 "--\n"
 "\n"
-"Release a lock.\n"
+"Release the lock.\n"
 "");
 
 #define PROMISE_LOCK_RELEASE_METHODDEF    \
@@ -443,4 +427,4 @@ promise_Lock_release(Lock *self, PyObject *Py_UNUSED(ignored))
 {
     return promise_Lock_release_impl(self);
 }
-/*[clinic end generated code: output=4bf0da836df2a77e input=a9049054013a1b77]*/
+/*[clinic end generated code: output=c435d755c7301b1a input=a9049054013a1b77]*/

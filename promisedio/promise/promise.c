@@ -175,13 +175,11 @@ module promise
 
 /*[clinic input]
 promise.clearfreelists
-
-Clear freelists
 [clinic start generated code]*/
 
 Py_LOCAL_INLINE(PyObject *)
 promise_clearfreelists_impl(PyObject *module)
-/*[clinic end generated code: output=3376cbbe518b4304 input=1a20bd413c302cc1]*/
+/*[clinic end generated code: output=3376cbbe518b4304 input=f0d862ad05cb73b1]*/
 {
     _CTX_set_module(module);
     Freelist_GC_Clear(PromiseType);
@@ -195,15 +193,13 @@ promise.setfreelistlimits
     promise_limit: Py_ssize_t = -1
     promiseiter_limit: Py_ssize_t = -1
     deferred_limit: Py_ssize_t = -1
-
-Set freelist limits
 [clinic start generated code]*/
 
 Py_LOCAL_INLINE(PyObject *)
 promise_setfreelistlimits_impl(PyObject *module, Py_ssize_t promise_limit,
                                Py_ssize_t promiseiter_limit,
                                Py_ssize_t deferred_limit)
-/*[clinic end generated code: output=98c0cac2cb949496 input=0575b1475d7fec22]*/
+/*[clinic end generated code: output=98c0cac2cb949496 input=f5426af3bc31504e]*/
 {
     _CTX_set_module(module);
     if (promise_limit >= 0) {
@@ -453,12 +449,11 @@ promise_exec_async(_ctx_var, PyObject *coro)
 /*[clinic input]
 promise.exec_async as promise_execasync
     coro: object(subclass_of='&PyCoro_Type')
-
 [clinic start generated code]*/
 
 Py_LOCAL_INLINE(PyObject *)
 promise_execasync_impl(PyObject *module, PyObject *coro)
-/*[clinic end generated code: output=df1dbca0537541fc input=f373349fc2e8c9d9]*/
+/*[clinic end generated code: output=df1dbca0537541fc input=3710cb31abca8981]*/
 {
     _CTX_set_module(module);
     promise_exec_async(_ctx, coro);
@@ -690,12 +685,11 @@ promise_unlockloop(_ctx_var)
 
 /*[clinic input]
 promise.run_forever
-
 [clinic start generated code]*/
 
 Py_LOCAL_INLINE(PyObject *)
 promise_run_forever_impl(PyObject *module)
-/*[clinic end generated code: output=dbc5007e1e267e20 input=a4668cb0592ac027]*/
+/*[clinic end generated code: output=dbc5007e1e267e20 input=ca8b2c355a7a8897]*/
 {
     _CTX_set_module(module);
     PyObject *event = PyObject_CallNoArgs(S(EventType));
@@ -1228,12 +1222,11 @@ Lock_Release(Lock *self)
 /*[clinic input]
 @classmethod
 promise.Lock.__new__
-
 [clinic start generated code]*/
 
 Py_LOCAL_INLINE(PyObject *)
 promise_Lock_impl(PyTypeObject *type)
-/*[clinic end generated code: output=d9149ff17417bda6 input=6c9fb50af8d29a9f]*/
+/*[clinic end generated code: output=d9149ff17417bda6 input=39e314e4ae9642a5]*/
 {
     Lock *self = (Lock *) Py_New(type);
     if (!self)

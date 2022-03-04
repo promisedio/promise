@@ -12,77 +12,114 @@
 
 ###### PromisedIO is free and open source software released under the permissive MIT license.
 
-### promise
+# Promises
 
 You can read about promises [here](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise).
 
+## Deferred
 ```python
-deferred() -> Deferred
+promise.deferred() -> Deferred
 ```
-Create new _Deferred_ object.
+<!--- [start_doc:promise.deferred] -->
+Create new [Deferred](#deferred) object.
+<!--- [end_doc] -->
 
 ```python
 Deferred.promise() -> Promise
 ```
-Get related _Promise_ object.
+<!--- [start_doc:promise.Deferred.promise] -->
+Get related [Promise](#promise) object.
+<!--- [end_doc] -->
 
 ```python
 Deferred.resolve(value: object) -> None
 ```
-Resolve related _Promise_ object with the given _value_.
+<!--- [start_doc:promise.Deferred.resolve] -->
+Resolve related [Promise](#promise) object with the given `value`.
+<!--- [end_doc] -->
 
 ```python
 Deferred.reject(exc: Exception) -> None
 ```
-Reject related _Promise_ object with the given exception _exc_.
+<!--- [start_doc:promise.Deferred.reject] -->
+Reject related [Promise](#promise) object with the given exception `exc`.
+<!--- [end_doc] -->
+
+## Promise 
 
 ```python
 Promise.then(fulfilled: Callable[[object], object], rejected: Callable[[Exception], object]) -> Promise
 ```
-Create new _Promise_.
-It takes up to two arguments: callback functions for the success and failure cases of the _Promise_.
+<!--- [start_doc:promise.Promise.then] -->
+Create new [Promise](#promise).
+It takes up to two arguments: callback functions for the success and failure cases of the promise.
+<!--- [end_doc] -->
 
 ```python
 Promise.catch(rejected: Callable[[Exception], object]) -> Promise
 ```
+<!--- [start_doc:promise.Promise.catch] -->
 The same as `.then(None, rejected)`
+<!--- [end_doc] -->
 
+## Loop
 ```python
 exec_async(coro: Coroutine) -> None
 ```
+<!--- [start_doc:promise.exec_async] -->
 Start coroutine.
-
-```python
-clearfreelists() -> None
-```
-Clear freelists.
-
-```python
-setfreelistlimits(promise_limit: int = -1, promiseiter_limit: int = -1, deferred_limit: int = -1) -> None
-```
-Set new freelist limits
+<!--- [end_doc] -->
 
 ```python
 process_promise_chain() -> None
 ```
+<!--- [start_doc:promise.process_promise_chain] -->
 Process all scheduled (resolved or rejected) promises.
+<!--- [end_doc] -->
 
 ```python
 run_forever() -> None
 ```
+<!--- [start_doc:promise.run_forever] -->
 Start simple event loop.
+<!--- [end_doc] -->
 
+## Utilities
+
+```python
+clearfreelists() -> None
+```
+<!--- [start_doc:promise.clearfreelists] -->
+Clear freelists.
+<!--- [end_doc] -->
+
+```python
+setfreelistlimits(promise_limit: int = -1, promiseiter_limit: int = -1, deferred_limit: int = -1) -> None
+```
+<!--- [start_doc:promise.setfreelistlimits] -->
+Set new freelist limits
+<!--- [end_doc] -->
+
+## Primitives
+
+## Lock
 ```python
 Lock() -> Lock
 ```
-Create new Lock object.
+<!--- [start_doc:promise.Lock.__new__] -->
+Create new [Lock](#lock) object.
+<!--- [end_doc] -->
 
 ```python
 Lock.acquire() -> Promise
 ```
-Acquire a lock.
+<!--- [start_doc:promise.Lock.acquire] -->
+Acquire the lock.
+<!--- [end_doc] -->
 
 ```python
 Lock.release() -> None
 ```
-Release a lock.
+<!--- [start_doc:promise.Lock.release] -->
+Release the lock.
+<!--- [end_doc] -->
