@@ -70,6 +70,8 @@ typedef struct {
     Chain_ROOT(Promise)
 } Promisechain;
 
+typedef struct coroutine_s Coroutine;
+
 typedef struct {
     /* Promise chain */
     Promisechain promisechain;
@@ -77,11 +79,14 @@ typedef struct {
     PyTypeObject *PromiseType;
     PyTypeObject *DeferredType;
     PyTypeObject *PromiseiterType;
+    PyTypeObject *CoroutineType;
     PyTypeObject *LockType;
     PyTypeObject *QueueType;
     PyObject *EventType;
     PyObject *NoArgs;
     PyObject *print_stack;
+    /* Current coroutine */
+    Coroutine *current_coro;
     /* Callback */
     int in_chain_routine;
     unlockloop unlockloop_func;
@@ -93,13 +98,14 @@ typedef struct {
     Freelist_GC_HEAD(PromiseType)
     Freelist_GC_HEAD(DeferredType)
     Freelist_GC_HEAD(PromiseiterType)
+    Freelist_GC_HEAD(CoroutineType)
 } _modulestate;
 
 struct promise_s {
     PROMISE_PUBLIC_FIELDS
     PyObject *fulfilled;
     PyObject *rejected;
-    PyObject *coro;
+    Coroutine *coro;
     PyObject *value;
     _ctx_var;
     Chain_ROOT(Promise)
@@ -110,7 +116,6 @@ struct promise_s {
 struct promise_s {
     PROMISE_PUBLIC_FIELDS
 };
-#endif
 
 Py_LOCAL_INLINE(int)
 Promise_WasScheduled(Promise *promise)
@@ -127,6 +132,7 @@ Promise_Data(Promise *promise)
 #define Promise_DATA(promise, type) \
     ((type *) Promise_Data(promise))
 
+
 Py_LOCAL_INLINE(PyObject *)
 Promise_GetCtx(Promise *promise)
 {
@@ -140,6 +146,7 @@ Promise_SetCtx(Promise *promise, PyObject *ctx)
     promise->ctx = ctx;
     return ret;
 }
+#endif
 /*[capsule:endcopy]*/
 
 typedef struct {
@@ -153,6 +160,14 @@ typedef struct {
     Promise *promise;
     _ctx_var;
 } Promiseiter;
+
+typedef struct coroutine_s {
+    PyObject_HEAD
+    PyObject *coro;
+    PyObject *context;
+    Promise *promise;
+    _ctx_var;
+} Coroutine;
 
 typedef struct {
     PyObject_HEAD
@@ -174,32 +189,39 @@ module promise
 /*[clinic end generated code: output=da39a3ee5e6b4b0d input=c425861e022a97bb]*/
 
 /*[clinic input]
-promise.clearfreelists
+promise.clearfreelists -> object(typed="None")
+
+Clear all freelists.
 [clinic start generated code]*/
 
 Py_LOCAL_INLINE(PyObject *)
 promise_clearfreelists_impl(PyObject *module)
-/*[clinic end generated code: output=3376cbbe518b4304 input=f0d862ad05cb73b1]*/
+/*[clinic end generated code: output=3376cbbe518b4304 input=c1d768a2525f8a4b]*/
 {
     _CTX_set_module(module);
     Freelist_GC_Clear(PromiseType);
-    Freelist_GC_Clear(PromiseiterType);
     Freelist_GC_Clear(DeferredType);
+    Freelist_GC_Clear(PromiseiterType);
+    Freelist_GC_Clear(CoroutineType);
     Py_RETURN_NONE;
 }
 
 /*[clinic input]
-promise.setfreelistlimits
+promise.setfreelistlimits -> object(typed="None")
     promise_limit: Py_ssize_t = -1
     promiseiter_limit: Py_ssize_t = -1
     deferred_limit: Py_ssize_t = -1
+    coroutine_limit: Py_ssize_t = -1
+
+Update freelist limits. Default limit for each type is 1024.
 [clinic start generated code]*/
 
 Py_LOCAL_INLINE(PyObject *)
 promise_setfreelistlimits_impl(PyObject *module, Py_ssize_t promise_limit,
                                Py_ssize_t promiseiter_limit,
-                               Py_ssize_t deferred_limit)
-/*[clinic end generated code: output=98c0cac2cb949496 input=f5426af3bc31504e]*/
+                               Py_ssize_t deferred_limit,
+                               Py_ssize_t coroutine_limit)
+/*[clinic end generated code: output=5b0fc0bd4a92ef56 input=f60e0abc9fbfd39a]*/
 {
     _CTX_set_module(module);
     if (promise_limit >= 0) {
@@ -210,6 +232,9 @@ promise_setfreelistlimits_impl(PyObject *module, Py_ssize_t promise_limit,
     }
     if (deferred_limit >= 0) {
         Freelist_GC_Limit(DeferredType, deferred_limit);
+    }
+    if (coroutine_limit >= 0) {
+        Freelist_GC_Limit(CoroutineType, coroutine_limit);
     }
     Py_RETURN_NONE;
 }
@@ -374,10 +399,14 @@ _Promise_ResolveEx(Promise *self, PyObject *value, int invoke_callback)
 }
 
 /*[capsule:copy]*/
+#ifdef CAPSULE_PROMISE_API
+
 #define Promise_Resolve(self, value) Promise_ResolveEx(self, value, 0)
 #define Promise_ResolveEx(self, value, invoke_callback)     \
     if (!((self)->flags & PROMISE_SCHEDULED))               \
         _Promise_ResolveEx(self, value, invoke_callback)
+
+#endif
 /*[capsule:endcopy]*/
 
 /* Reject promise */
@@ -397,10 +426,14 @@ _Promise_RejectEx(Promise *self, PyObject *value, int invoke_callback)
 }
 
 /*[capsule:copy]*/
+#ifdef CAPSULE_PROMISE_API
+
 #define Promise_Reject(self, value) Promise_RejectEx(self, value, 0)
 #define Promise_RejectEx(self, value, invoke_callback)      \
     if (!(self->flags & PROMISE_SCHEDULED))                 \
         _Promise_RejectEx(self, value, invoke_callback)
+
+#endif
 /*[capsule:endcopy]*/
 
 CAPSULE_API (void)
@@ -412,10 +445,14 @@ _Promise_RejectArgsEx(Promise *self, PyObject *exc, PyObject *args, int invoke_c
 }
 
 /*[capsule:copy]*/
+#ifdef CAPSULE_PROMISE_API
+
 #define Promise_RejectArgs(self, exc, args) Promise_RejectArgsEx(self, exc, args, 0)
 #define Promise_RejectArgsEx(self, exc, args, invoke_callback)  \
     if (!(self->flags & PROMISE_SCHEDULED))                     \
         _Promise_RejectArgsEx(self, exc, args, invoke_callback)
+
+#endif
 /*[capsule:endcopy]*/
 
 CAPSULE_API(void)
@@ -427,67 +464,101 @@ _Promise_RejectStringEx(Promise *self, PyObject *exc, const char *msg, int invok
 }
 
 /*[capsule:copy]*/
+#ifdef CAPSULE_PROMISE_API
+
 #define Promise_RejectString(self, exc, msg) Promise_RejectStringEx(self, exc, msg, 0)
 #define Promise_RejectStringEx(self, exc, msg, invoke_callback)     \
     if (!(self->flags & PROMISE_SCHEDULED))                         \
         _Promise_RejectStringEx(self, exc, msg, invoke_callback)
+
+#endif
 /*[capsule:endcopy]*/
 
+Py_LOCAL_INLINE(Coroutine *) coroutine_new(PyObject *coro, Promise *promise, PyObject *context);
+
 Py_LOCAL_INLINE(int)
-promise_exec_async(_ctx_var, PyObject *coro)
+promise_exec_async(_ctx_var, PyObject *coro, PyObject *context)
 {
+    assert (coro != NULL);
     Promise *promise = Promise_New(_ctx);
     if (!promise)
         return -1;
+    Coroutine *coroutine = coroutine_new(coro, NULL, context);
+    if (!coroutine) {
+        Py_DECREF(promise);
+        return -1;
+    }
     schedule_promise(promise, Py_None, PROMISE_FULFILLED | PROMISE_VALUABLE, 1);
-    PyTrack_INCREF(coro);
-    promise->coro = coro;
+    Py_INCREF(coro);
+    promise->coro = coroutine;
     Py_DECREF(promise);
     return 0;
 }
 
 /*[clinic input]
-promise.exec_async as promise_execasync
-    coro: object(subclass_of='&PyCoro_Type')
+promise.exec_async as promise_execasync -> object(typed="None")
+    coro: object(subclass_of='&PyCoro_Type', typed='Coroutine')
+    context: object(typed='Any') = None
+
+Start new coroutine and set the `context` for the new coroutine.
 [clinic start generated code]*/
 
 Py_LOCAL_INLINE(PyObject *)
-promise_execasync_impl(PyObject *module, PyObject *coro)
-/*[clinic end generated code: output=df1dbca0537541fc input=3710cb31abca8981]*/
+promise_execasync_impl(PyObject *module, PyObject *coro, PyObject *context)
+/*[clinic end generated code: output=cfd479a9a3dcd210 input=0105fdd1ce32874a]*/
 {
     _CTX_set_module(module);
-    promise_exec_async(_ctx, coro);
+    if (Py_IsNone(context)) {
+        context = NULL;
+    }
+    promise_exec_async(_ctx, coro, context);
     Py_RETURN_NONE;
 }
 
 Py_LOCAL_INLINE(int)
-resume_coroutine(_ctx_var, PyObject *coro, PyObject *value, int reject)
+resume_coroutine(_ctx_var, Coroutine *coro, PyObject *value, int reject)
 {
     _Py_IDENTIFIER(throw);
 
     PyObject *result;
     Py_INCREF(value);
 
+    Py_INCREF(coro);
+    S(current_coro) = coro;
+    int ret = 0;
+
     while (1) {
         // value leaving circuit
         if (reject) {
-            result = _PyObject_CallMethodIdOneArg(coro, &PyId_throw, value);
+            result = _PyObject_CallMethodIdOneArg(coro->coro, &PyId_throw, value);
         } else {
-            PySendResult send_result = PyIter_Send(coro, value, &result);
+            PySendResult send_result = PyIter_Send(coro->coro, value, &result);
             if (send_result == PYGEN_RETURN) {
                 Py_DECREF(value);
+                if (coro->promise) {
+                    schedule_promise(coro->promise, result, PROMISE_FULFILLED, 1);
+                    Py_CLEAR(coro->promise);
+                }
                 Py_DECREF(result);
-                return 0;
+                goto finally;
             }
         }
         Py_DECREF(value);
         if (!result) {
             if (PyErr_ExceptionMatches(PyExc_KeyboardInterrupt)
                 || PyErr_ExceptionMatches(PyExc_SystemExit)) {
-                return -1;
+                ret = -1;
+                goto finally;
             }
-            PyErr_WriteUnraisable(coro);
-            return 0;
+            if (coro->promise) {
+                value = Py_FetchError();
+                schedule_promise(coro->promise, value, PROMISE_REJECTED, 1);
+                Py_CLEAR(coro->promise);
+                Py_DECREF(value);
+            } else {
+                PyErr_WriteUnraisable(coro->coro);
+            }
+            goto finally;
         }
         if (Py_TYPE(result) != S(PromiseType)) {
             Py_DECREF(result);
@@ -500,13 +571,15 @@ resume_coroutine(_ctx_var, PyObject *coro, PyObject *value, int reject)
         }
         Promise *promise = (Promise *) result;
         promise->flags |= PROMISE_VALUABLE;
-        PyTrack_INCREF(coro);
+        Py_INCREF(coro);
         promise->coro = coro;
         Py_DECREF(promise);
         break;
     }
 
-    return 0;
+finally:
+    Py_CLEAR(S(current_coro));
+    return ret;
 }
 
 Py_LOCAL_INLINE(int)
@@ -607,7 +680,7 @@ handle_scheduled_promise(_ctx_var, Promise *promise)
         int ret = resume_coroutine(_ctx, promise->coro, promise->value,
                                    exec_status & PROMISE_REJECTED);
         // release coro ASAP
-        PyTrack_CLEAR(promise->coro);
+        Py_CLEAR(promise->coro);
         return ret;
     }
 
@@ -656,12 +729,16 @@ Promise_GetStats(_ctx_var, Py_ssize_t *active_promises)
 
 
 /*[clinic input]
-promise.process_promise_chain
+promise.process_promise_chain -> object(typed="int")
+
+Process all scheduled (resolved or rejected) promises.
+
+Returns active promise count.
 [clinic start generated code]*/
 
 Py_LOCAL_INLINE(PyObject *)
 promise_process_promise_chain_impl(PyObject *module)
-/*[clinic end generated code: output=0587509f3b9441b4 input=1b727a6bcabff125]*/
+/*[clinic end generated code: output=0587509f3b9441b4 input=bfb420ad4e54c1dc]*/
 {
     _CTX_set_module(module);
     int ret = Promise_ProcessChain(_ctx);
@@ -684,12 +761,14 @@ promise_unlockloop(_ctx_var)
 }
 
 /*[clinic input]
-promise.run_forever
+promise.run_forever -> object(typed="None")
+
+Start simple event loop.
 [clinic start generated code]*/
 
 Py_LOCAL_INLINE(PyObject *)
 promise_run_forever_impl(PyObject *module)
-/*[clinic end generated code: output=dbc5007e1e267e20 input=ca8b2c355a7a8897]*/
+/*[clinic end generated code: output=dbc5007e1e267e20 input=1dae6841a1c8c431]*/
 {
     _CTX_set_module(module);
     PyObject *event = PyObject_CallNoArgs(S(EventType));
@@ -723,6 +802,109 @@ promise_run_forever_impl(PyObject *module)
 
     Py_RETURN_NONE;
 }
+
+/*[clinic input]
+promise.get_context -> object(typed="Any")
+
+Get context of current corroutine.
+[clinic start generated code]*/
+
+Py_LOCAL_INLINE(PyObject *)
+promise_get_context_impl(PyObject *module)
+/*[clinic end generated code: output=7587612ed5fc5f8b input=dbe598a5fb87dab2]*/
+{
+    _CTX_set_module(module);
+    if (!S(current_coro)) {
+        PyErr_SetString(PyExc_ValueError, "No context");
+    }
+    Coroutine *coro = S(current_coro);
+    if (coro->context) {
+        Py_INCREF(coro->context);
+        return coro->context;
+    }
+    Py_RETURN_NONE;
+}
+
+static PyObject *
+forbidden_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
+{
+    PyErr_SetString(PyExc_TypeError, "You should not create this object directly");
+    return NULL;
+}
+
+PyDoc_STRVAR(coroutine_doc, "Coroutine wrapper which holds context and result promise");
+
+Py_LOCAL_INLINE(Coroutine *)
+coroutine_new(PyObject *coro, Promise *promise, PyObject *context)
+{
+    _CTX_set(promise);
+    Coroutine *wrapper = (Coroutine *) Freelist_GC_New(CoroutineType);
+    if (!wrapper)
+        return NULL;
+    PyTrack_MarkAllocated(wrapper);
+    PyObject_GC_Track(wrapper);
+    _CTX_save(wrapper);
+    Py_INCREF(coro);
+    wrapper->coro = coro;
+    Py_XINCREF(promise);
+    wrapper->promise = promise;
+    Py_XINCREF(context);
+    wrapper->context = context;
+    return wrapper;
+}
+
+static int
+coroutine_traverse(Coroutine *self, visitproc visit, void *arg)
+{
+    Py_VISIT(Py_TYPE(self));
+    Py_VISIT(self->coro);
+    Py_VISIT(self->promise);
+    Py_VISIT(self->context);
+    return 0;
+}
+
+static int
+coroutine_clear(Coroutine *self)
+{
+    Py_CLEAR(self->coro);
+    Py_CLEAR(self->promise);
+    Py_CLEAR(self->context);
+    return 0;
+}
+
+static void
+coroutine_dealloc(Coroutine *self)
+{
+    _CTX_set(self);
+    PyTrack_MarkDeleted(self);
+    PyObject_GC_UnTrack(self);
+    coroutine_clear(self);
+    Freelist_GC_Delete(CoroutineType, self);
+}
+
+static PyObject *
+coroutine_repr(PyObject *self)
+{
+    return PyUnicode_FromFormat("<Coroutine object at %p>", self);
+}
+
+static PyType_Slot coroutine_slots[] = {
+    {Py_tp_doc, (char *) coroutine_doc},
+    {Py_tp_new, forbidden_new},
+    {Py_tp_dealloc, coroutine_dealloc},
+    {Py_tp_traverse, coroutine_traverse},
+    {Py_tp_clear, coroutine_clear},
+    {Py_tp_repr, coroutine_repr},
+    {0, 0},
+};
+
+static PyType_Spec coroutine_spec = {
+    "promisedio.promise.Coroutine",
+    sizeof(Coroutine),
+    0,
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC | Py_TPFLAGS_IMMUTABLETYPE,
+    coroutine_slots,
+};
 
 PyDoc_STRVAR(promiseiter_doc, "Iterator for async magic");
 
@@ -800,9 +982,9 @@ static PyMethodDef promiseiter_methods[] = {
     {NULL, NULL},
 };
 
-
 static PyType_Slot promiseiter_slots[] = {
     {Py_tp_doc, (char *) promiseiter_doc},
+    {Py_tp_new, forbidden_new},
     {Py_tp_methods, promiseiter_methods},
     {Py_tp_dealloc, promiseiter_dealloc},
     {Py_tp_traverse, promiseiter_traverse},
@@ -836,15 +1018,19 @@ class promise.Promise "Promise *" "&PromiseType"
 /*[clinic end generated code: output=da39a3ee5e6b4b0d input=1cf6b3558b6d3efd]*/
 
 /*[clinic input]
-promise.Promise.then
-    fulfilled: object = None
-    rejected: object = None
+promise.Promise.then -> object(typed="Promise")
+    fulfilled: object(typed='Callable') = None
+    rejected: object(typed='Callable') = None
+
+Create new `Promise`.
+
+It takes up to two arguments: callback functions for the success and failure cases of the promise.
 [clinic start generated code]*/
 
 Py_LOCAL_INLINE(PyObject *)
 promise_Promise_then_impl(Promise *self, PyObject *fulfilled,
                           PyObject *rejected)
-/*[clinic end generated code: output=9573450632b756bf input=d1643be0516cbaa7]*/
+/*[clinic end generated code: output=9573450632b756bf input=c717bcd7b3415de6]*/
 {
     if (Py_IsNone(fulfilled)) {
         fulfilled = NULL;
@@ -872,13 +1058,15 @@ promise_Promise_then_impl(Promise *self, PyObject *fulfilled,
 }
 
 /*[clinic input]
-promise.Promise.catch
-    rejected: object
+promise.Promise.catch -> object(typed="Promise")
+    rejected: object(typed='Callable')
+
+The same as `.then(None, rejected)`
 [clinic start generated code]*/
 
 Py_LOCAL_INLINE(PyObject *)
 promise_Promise_catch_impl(Promise *self, PyObject *rejected)
-/*[clinic end generated code: output=10c9938cc577180f input=29eda98237fd3448]*/
+/*[clinic end generated code: output=10c9938cc577180f input=b28e3d27c63a73f8]*/
 {
     if (!PyCallable_Check(rejected)) {
         PyErr_SetString(PyExc_TypeError, "`rejected` argument must be a callable");
@@ -891,13 +1079,6 @@ promise_Promise_catch_impl(Promise *self, PyObject *rejected)
         promise->rejected = rejected;
     }
     return (PyObject *) promise;
-}
-
-static PyObject *
-promise_forbidden_new(PyTypeObject *type, PyObject *args, PyObject *kwargs)
-{
-    PyErr_SetString(PyExc_TypeError, "You should not create Promise directly");
-    return NULL;
 }
 
 static int
@@ -925,7 +1106,7 @@ promise_clear(Promise *self)
     PyTrack_CLEAR(self->value);
     PyTrack_CLEAR(self->ctx);
     // coro, context, fulfilled and rejected normally should be NULL
-    PyTrack_CLEAR(self->coro);
+    Py_CLEAR(self->coro);
     if (self->flags & PROMISE_PY_CALLBACK) {
         PyTrack_CLEAR(self->fulfilled);
         PyTrack_CLEAR(self->rejected);
@@ -950,7 +1131,7 @@ promise_finalize(Promise *self)
     PySys_WriteStderr("Traceback (most recent call last):\n");
     PyObject *result = _PyObject_CallOneArg(S(print_stack), (PyObject *) ((PyCoroObject *) self->coro)->cr_frame);
     if (!result) {
-        PyErr_WriteUnraisable(self->coro);
+        PyErr_WriteUnraisable(self->coro->coro);
     }
     PySys_WriteStderr("RuntimeError: a coroutine awaits a promise that will never be fulfilled\n");
     Py_XDECREF(result);
@@ -1019,7 +1200,7 @@ promise_repr(PyObject *self)
 
 static PyType_Slot promise_slots[] = {
     {Py_tp_doc, (char *) promise_doc},
-    {Py_tp_new, promise_forbidden_new},
+    {Py_tp_new, forbidden_new},
     {Py_tp_methods, promise_methods},
     {Py_tp_dealloc, promise_dealloc},
     {Py_tp_finalize, promise_finalize},
@@ -1049,12 +1230,14 @@ static PyMethodDef deferred_methods[] = {
 };
 
 /*[clinic input]
-promise.deferred
+promise.deferred -> object(typed="Deferred")
+
+Create new `Deferred` object.
 [clinic start generated code]*/
 
 Py_LOCAL_INLINE(PyObject *)
 promise_deferred_impl(PyObject *module)
-/*[clinic end generated code: output=4760b84ba7d768a3 input=4303141f412f77d4]*/
+/*[clinic end generated code: output=4760b84ba7d768a3 input=631990e13a3e9106]*/
 {
     _CTX_set_module(module);
     Promise *promise = Promise_New(_ctx);
@@ -1078,13 +1261,15 @@ class promise.Deferred "Deferred *" "&DeferredType"
 /*[clinic end generated code: output=da39a3ee5e6b4b0d input=0a0fbb23a0253343]*/
 
 /*[clinic input]
-promise.Deferred.resolve
-    value: object
+promise.Deferred.resolve -> object(typed="None")
+    value: object(typed='Any')
+
+Resolve related `Promise` object with the given `value`.
 [clinic start generated code]*/
 
 Py_LOCAL_INLINE(PyObject *)
 promise_Deferred_resolve_impl(Deferred *self, PyObject *value)
-/*[clinic end generated code: output=f055b923264841e2 input=91fdbc261cc8f9a6]*/
+/*[clinic end generated code: output=f055b923264841e2 input=574b17c9e2491ba7]*/
 {
     if (!(self->promise->flags & PROMISE_SCHEDULED)) {
         _Promise_ResolveEx(self->promise, value, 1);
@@ -1093,13 +1278,15 @@ promise_Deferred_resolve_impl(Deferred *self, PyObject *value)
 }
 
 /*[clinic input]
-promise.Deferred.reject
-    value: object
+promise.Deferred.reject -> object(typed="None")
+    value: object(typed='Exception')
+
+Reject related `Promise` object with the given exception `value`.
 [clinic start generated code]*/
 
 Py_LOCAL_INLINE(PyObject *)
 promise_Deferred_reject_impl(Deferred *self, PyObject *value)
-/*[clinic end generated code: output=65ffe03c0340f128 input=db4da272b9a4e4e8]*/
+/*[clinic end generated code: output=65ffe03c0340f128 input=af6763873c5d715d]*/
 {
     if (!PyExceptionClass_Check(value) && !PyExceptionInstance_Check(value)) {
         PyErr_SetString(PyExc_TypeError, "exceptions must be classes deriving BaseException or "
@@ -1113,12 +1300,14 @@ promise_Deferred_reject_impl(Deferred *self, PyObject *value)
 }
 
 /*[clinic input]
-promise.Deferred.promise
+promise.Deferred.promise -> object(typed="Promise")
+
+Get related `Promise` object.
 [clinic start generated code]*/
 
 Py_LOCAL_INLINE(PyObject *)
 promise_Deferred_promise_impl(Deferred *self)
-/*[clinic end generated code: output=77601f45478590bb input=9210627b1b2b5b68]*/
+/*[clinic end generated code: output=77601f45478590bb input=b7eb4ec92f5b3bc4]*/
 {
     Py_INCREF(self->promise);
     return (PyObject *) self->promise;
@@ -1157,6 +1346,7 @@ deferred_repr(PyObject *self)
 
 static PyType_Slot deferred_slots[] = {
     {Py_tp_doc, (char *) deferred_doc},
+    {Py_tp_new, forbidden_new},
     {Py_tp_methods, deferred_methods},
     {Py_tp_dealloc, deferred_dealloc},
     {Py_tp_traverse, deferred_traverse},
@@ -1222,11 +1412,13 @@ Lock_Release(Lock *self)
 /*[clinic input]
 @classmethod
 promise.Lock.__new__
+
+Create new `Lock` object.
 [clinic start generated code]*/
 
 Py_LOCAL_INLINE(PyObject *)
 promise_Lock_impl(PyTypeObject *type)
-/*[clinic end generated code: output=d9149ff17417bda6 input=39e314e4ae9642a5]*/
+/*[clinic end generated code: output=d9149ff17417bda6 input=74427d9b18c612ad]*/
 {
     Lock *self = (Lock *) Py_New(type);
     if (!self)
@@ -1241,23 +1433,27 @@ promise_Lock_impl(PyTypeObject *type)
 }
 
 /*[clinic input]
-promise.Lock.acquire
+promise.Lock.acquire -> object(typed="Promise")
+
+Acquire the lock.
 [clinic start generated code]*/
 
 Py_LOCAL_INLINE(PyObject *)
 promise_Lock_acquire_impl(Lock *self)
-/*[clinic end generated code: output=20d044ffec9c1f84 input=3719b01c75a61bbd]*/
+/*[clinic end generated code: output=20d044ffec9c1f84 input=acc97f55cb9a1470]*/
 {
     return (PyObject *) Lock_Acquire(self);
 }
 
 /*[clinic input]
-promise.Lock.release
+promise.Lock.release -> object(typed="Promise")
+
+Release the lock.
 [clinic start generated code]*/
 
 Py_LOCAL_INLINE(PyObject *)
 promise_Lock_release_impl(Lock *self)
-/*[clinic end generated code: output=b1c748e07809746e input=34ca8d375175cf0b]*/
+/*[clinic end generated code: output=b1c748e07809746e input=9ade0e12692d0229]*/
 {
     Lock_Release(self);
     Py_RETURN_NONE;
@@ -1320,6 +1516,7 @@ promisemodule_init(PyObject *module)
     Freelist_GC_INIT(PromiseType, 1024);
     Freelist_GC_INIT(DeferredType, 1024);
     Freelist_GC_INIT(PromiseiterType, 1024);
+    Freelist_GC_INIT(CoroutineType, 1024);
     Chain_INIT(&(S(promisechain)));
     S(in_chain_routine) = 0;
     S(unlockloop_func) = NULL;
@@ -1335,6 +1532,9 @@ promisemodule_init(PyObject *module)
     S(PromiseiterType) = (PyTypeObject *) PyType_FromModuleAndSpec(module, &promiseiter_spec, NULL);
     if (S(PromiseiterType) == NULL)
         return -1;
+    S(CoroutineType) = (PyTypeObject *) PyType_FromModuleAndSpec(module, &coroutine_spec, NULL);
+    if (S(CoroutineType) == NULL)
+        return -1;
     S(LockType) = (PyTypeObject *) PyType_FromModuleAndSpec(module, &lock_spec, NULL);
     if (S(LockType) == NULL)
         return -1;
@@ -1344,25 +1544,25 @@ promisemodule_init(PyObject *module)
     int err = -1;
     PyObject *threading = PyImport_ImportModule("threading");
     if (!threading)
-        goto finally;
+        return -1;
     S(EventType) = PyObject_GetAttrString(threading, "Event");
-    if (S(EventType) == NULL)
-        goto finally;
+    Py_DECREF(threading);
+    if (S(EventType) == NULL) {
+        return -1;
+    }
     PyObject *d = PyModule_GetDict(module);
     if (PyDict_SetItemString(d, "Promise", (PyObject *) S(PromiseType)) < 0)
-        goto finally;
+        return -1;
     if (PyDict_SetItemString(d, "Lock", (PyObject *) S(LockType)) < 0)
-        goto finally;
+        return -1;
     PyObject *traceback = PyImport_ImportModule("traceback");
     if (!traceback)
-        goto finally;
+        return -1;
     S(print_stack) = PyObject_GetAttrString(traceback, "print_stack");
+    Py_DECREF(traceback);
     if (S(print_stack) == NULL)
-        goto finally;
-    err = 0;
-finally:
-    Py_XDECREF(threading);
-    return err;
+        return -1;
+    return 0;
 }
 
 /*[capsule:export PROMISE_API_FUNCS]*/
@@ -1405,6 +1605,7 @@ promisemodule_traverse(PyObject *module, visitproc visit, void *arg)
     Py_VISIT(S(PromiseType));
     Py_VISIT(S(DeferredType));
     Py_VISIT(S(PromiseiterType));
+    Py_VISIT(S(CoroutineType));
     Py_VISIT(S(LockType));
     Py_VISIT(S(EventType));
     Py_VISIT(S(NoArgs));
@@ -1420,6 +1621,7 @@ promisemodule_clear(PyObject *module)
     Py_CLEAR(S(PromiseType));
     Py_CLEAR(S(DeferredType));
     Py_CLEAR(S(PromiseiterType));
+    Py_CLEAR(S(CoroutineType));
     Py_CLEAR(S(LockType));
     Py_CLEAR(S(EventType));
     Py_CLEAR(S(NoArgs));
@@ -1434,8 +1636,9 @@ promisemodule_free(void *module)
     LOG("(%p)", module);
     _CTX_set_module(module);
     Freelist_GC_Clear(PromiseType);
-    Freelist_GC_Clear(PromiseiterType);
     Freelist_GC_Clear(DeferredType);
+    Freelist_GC_Clear(PromiseiterType);
+    Freelist_GC_Clear(CoroutineType);
     promisemodule_clear((PyObject *) module);
 }
 

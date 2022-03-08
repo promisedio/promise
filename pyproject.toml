@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "promisedio-promise"
-version = "1.0.22"
+version = "1.0.23"
 description = "High-performance promise implementation for Python"
 readme = "README.md"
 authors = ["aachurin <aachurin@gmail.com>"]
@@ -20,5 +20,5 @@ classifiers = [
 python = "^3.10"
 
 [build-system]
-requires = ["poetry-core>=1.0.0", "setuptools", "promisedio-build-environment>=1.0.26,<1.1.0"]
+requires = ["poetry-core>=1.0.0", "setuptools", "promisedio-build-environment>=1.0.27,<1.1.0"]
 build-backend = "poetry.core.masonry.api"

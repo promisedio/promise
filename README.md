@@ -12,114 +12,109 @@
 
 ###### PromisedIO is free and open source software released under the permissive MIT license.
 
-# Promises
-
 You can read about promises [here](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise).
 
-## Deferred
-```python
-promise.deferred() -> Deferred
-```
-<!--- [start_doc:promise.deferred] -->
-Create new [Deferred](#deferred) object.
-<!--- [end_doc] -->
-
-```python
-Deferred.promise() -> Promise
-```
-<!--- [start_doc:promise.Deferred.promise] -->
-Get related [Promise](#promise) object.
-<!--- [end_doc] -->
-
-```python
-Deferred.resolve(value: object) -> None
-```
-<!--- [start_doc:promise.Deferred.resolve] -->
-Resolve related [Promise](#promise) object with the given `value`.
-<!--- [end_doc] -->
-
-```python
-Deferred.reject(exc: Exception) -> None
-```
-<!--- [start_doc:promise.Deferred.reject] -->
-Reject related [Promise](#promise) object with the given exception `exc`.
-<!--- [end_doc] -->
-
-## Promise 
-
-```python
-Promise.then(fulfilled: Callable[[object], object], rejected: Callable[[Exception], object]) -> Promise
-```
-<!--- [start_doc:promise.Promise.then] -->
-Create new [Promise](#promise).
-It takes up to two arguments: callback functions for the success and failure cases of the promise.
-<!--- [end_doc] -->
-
-```python
-Promise.catch(rejected: Callable[[Exception], object]) -> Promise
-```
-<!--- [start_doc:promise.Promise.catch] -->
-The same as `.then(None, rejected)`
-<!--- [end_doc] -->
-
-## Loop
-```python
-exec_async(coro: Coroutine) -> None
-```
-<!--- [start_doc:promise.exec_async] -->
-Start coroutine.
-<!--- [end_doc] -->
-
-```python
-process_promise_chain() -> None
-```
-<!--- [start_doc:promise.process_promise_chain] -->
-Process all scheduled (resolved or rejected) promises.
-<!--- [end_doc] -->
-
-```python
-run_forever() -> None
-```
-<!--- [start_doc:promise.run_forever] -->
-Start simple event loop.
-<!--- [end_doc] -->
-
-## Utilities
-
+<!--- template:[promise] -->
+# promise module
+#### clearfreelists
 ```python
 clearfreelists() -> None
 ```
-<!--- [start_doc:promise.clearfreelists] -->
-Clear freelists.
-<!--- [end_doc] -->
+Clear all freelists.
 
+#### deferred
 ```python
-setfreelistlimits(promise_limit: int = -1, promiseiter_limit: int = -1, deferred_limit: int = -1) -> None
+deferred() -> Deferred
 ```
-<!--- [start_doc:promise.setfreelistlimits] -->
-Set new freelist limits
-<!--- [end_doc] -->
+Create new [Deferred](#deferred) object.
 
-## Primitives
-
-## Lock
+#### exec_async
 ```python
-Lock() -> Lock
+exec_async(coro: Coroutine, context: Any = None) -> None
 ```
-<!--- [start_doc:promise.Lock.__new__] -->
+Start new coroutine and set the `context` for the new coroutine.
+
+#### get_context
+```python
+get_context() -> Any
+```
+Get context of current corroutine.
+
+#### process_promise_chain
+```python
+process_promise_chain() -> int
+```
+Process all scheduled (resolved or rejected) promises.
+
+Returns active promise count.
+
+#### run_forever
+```python
+run_forever() -> None
+```
+Start simple event loop.
+
+#### setfreelistlimits
+```python
+setfreelistlimits(promise_limit: int = -1, promiseiter_limit: int = -1, deferred_limit: int = -1, coroutine_limit: int = -1) -> None
+```
+Update freelist limits. Default limit for each type is 1024.
+
+### Deferred
+#### Deferred.promise
+```python
+Deferred.promise() -> Promise
+```
+Get related [Promise](#promise) object.
+
+#### Deferred.reject
+```python
+Deferred.reject(value: Exception) -> None
+```
+Reject related [Promise](#promise) object with the given exception `value`.
+
+#### Deferred.resolve
+```python
+Deferred.resolve(value: Any) -> None
+```
+Resolve related [Promise](#promise) object with the given `value`.
+
+### Lock
+#### Lock.__new__
+```python
+Lock.__new__() -> Any
+```
 Create new [Lock](#lock) object.
-<!--- [end_doc] -->
 
+#### Lock.acquire
 ```python
 Lock.acquire() -> Promise
 ```
-<!--- [start_doc:promise.Lock.acquire] -->
 Acquire the lock.
-<!--- [end_doc] -->
 
+#### Lock.release
 ```python
-Lock.release() -> None
+Lock.release() -> Promise
 ```
-<!--- [start_doc:promise.Lock.release] -->
 Release the lock.
-<!--- [end_doc] -->
+
+### Promise
+#### Promise.catch
+```python
+Promise.catch(rejected: Callable) -> Promise
+```
+The same as `.then(None, rejected)`
+
+#### Promise.then
+```python
+Promise.then(fulfilled: Callable = None, rejected: Callable = None) -> Promise
+```
+Create new [Promise](#promise).
+
+It takes up to two arguments: callback functions for the success and failure cases of the promise.
+
+
+<!--- end:[promise] -->
+
+<!--- template:[PROMISE_API] -->
+<!--- end:[PROMISE_API] -->

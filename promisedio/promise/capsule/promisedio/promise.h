@@ -72,7 +72,6 @@ Py_FetchError()
 struct promise_s {
     PROMISE_PUBLIC_FIELDS
 };
-#endif
 
 Py_LOCAL_INLINE(int)
 Promise_WasScheduled(Promise *promise)
@@ -89,6 +88,7 @@ Promise_Data(Promise *promise)
 #define Promise_DATA(promise, type) \
     ((type *) Promise_Data(promise))
 
+
 Py_LOCAL_INLINE(PyObject *)
 Promise_GetCtx(Promise *promise)
 {
@@ -102,6 +102,7 @@ Promise_SetCtx(Promise *promise, PyObject *ctx)
     promise->ctx = ctx;
     return ret;
 }
+#endif
 
 #define PROMISE_STARTLOOP_ID 0
 #define Promise_StartLoop(...) \
@@ -143,40 +144,56 @@ Promise_SetCtx(Promise *promise, PyObject *ctx)
   ((void (*) (Promise *self, PyObject *value, int invoke_callback))(promise_api_eaa656ec04c4f7d919b0cc30615e2c30__API[_PROMISE_RESOLVEEX_ID]))( \
     __VA_ARGS__)
 
+#ifdef CAPSULE_PROMISE_API
+
 #define Promise_Resolve(self, value) Promise_ResolveEx(self, value, 0)
 #define Promise_ResolveEx(self, value, invoke_callback)     \
     if (!((self)->flags & PROMISE_SCHEDULED))               \
         _Promise_ResolveEx(self, value, invoke_callback)
+
+#endif
 
 #define _PROMISE_REJECTEX_ID 8
 #define _Promise_RejectEx(...) \
   ((void (*) (Promise *self, PyObject *value, int invoke_callback))(promise_api_eaa656ec04c4f7d919b0cc30615e2c30__API[_PROMISE_REJECTEX_ID]))( \
     __VA_ARGS__)
 
+#ifdef CAPSULE_PROMISE_API
+
 #define Promise_Reject(self, value) Promise_RejectEx(self, value, 0)
 #define Promise_RejectEx(self, value, invoke_callback)      \
     if (!(self->flags & PROMISE_SCHEDULED))                 \
         _Promise_RejectEx(self, value, invoke_callback)
+
+#endif
 
 #define _PROMISE_REJECTARGSEX_ID 9
 #define _Promise_RejectArgsEx(...) \
   ((void (*) (Promise *self, PyObject *exc, PyObject *args, int invoke_callback))(promise_api_eaa656ec04c4f7d919b0cc30615e2c30__API[_PROMISE_REJECTARGSEX_ID]))( \
     __VA_ARGS__)
 
+#ifdef CAPSULE_PROMISE_API
+
 #define Promise_RejectArgs(self, exc, args) Promise_RejectArgsEx(self, exc, args, 0)
 #define Promise_RejectArgsEx(self, exc, args, invoke_callback)  \
     if (!(self->flags & PROMISE_SCHEDULED))                     \
         _Promise_RejectArgsEx(self, exc, args, invoke_callback)
+
+#endif
 
 #define _PROMISE_REJECTSTRINGEX_ID 10
 #define _Promise_RejectStringEx(...) \
   ((void (*) (Promise *self, PyObject *exc, const char *msg, int invoke_callback))(promise_api_eaa656ec04c4f7d919b0cc30615e2c30__API[_PROMISE_REJECTSTRINGEX_ID]))( \
     __VA_ARGS__)
 
+#ifdef CAPSULE_PROMISE_API
+
 #define Promise_RejectString(self, exc, msg) Promise_RejectStringEx(self, exc, msg, 0)
 #define Promise_RejectStringEx(self, exc, msg, invoke_callback)     \
     if (!(self->flags & PROMISE_SCHEDULED))                         \
         _Promise_RejectStringEx(self, exc, msg, invoke_callback)
+
+#endif
 
 #define PROMISE_CLEARCHAIN_ID 11
 #define Promise_ClearChain() \
