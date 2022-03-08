@@ -1505,6 +1505,7 @@ static PyMethodDef promisemodule_methods[] = {
     PROMISE_EXECASYNC_METHODDEF
     PROMISE_PROCESS_PROMISE_CHAIN_METHODDEF
     PROMISE_RUN_FOREVER_METHODDEF
+    PROMISE_GET_CONTEXT_METHODDEF
     {NULL, NULL},
 };
 
@@ -1541,7 +1542,6 @@ promisemodule_init(PyObject *module)
     S(NoArgs) = PyType_FromModuleAndSpec(module, &nullvalue_spec, NULL);
     if (S(NoArgs) == NULL)
         return -1;
-    int err = -1;
     PyObject *threading = PyImport_ImportModule("threading");
     if (!threading)
         return -1;
